@@ -10,10 +10,11 @@ import {Cancellable, Requestable} from "rsocket-core";
 import {postRepository} from "../../../module/post/repository/PostRepository.ts";
 import "./PostSearch.scss"
 import EditPost from "../../../module/post/controller/EditPost.ts";
+import {Post} from "../../../module/post/model/Post.ts";
 
 @observer
 export default class PostSearch extends PureComponent<unknown> {
-    @observable private posts: string[] = [];
+    @observable private posts: Map<string, Post> = new Map<string, Post>();
     @observable private authorId?: number;
     @observable private tags: Tag[] = []
     private requester?: Requestable & Cancellable
@@ -32,11 +33,11 @@ export default class PostSearch extends PureComponent<unknown> {
         };
         WS.process(SearchPostsController, request, data => {
             if (data.postId != undefined) {
-                this.posts.push(data.postId)
+                postRepository.get({postId: data.postId}, post => this.posts.set(post.id, post))
             }
         }).then(request => {
-            this.posts = []
             this.requester?.cancel();
+            this.posts.clear();
             (this.requester = request).request(4)
         });
     }
@@ -57,25 +58,20 @@ export default class PostSearch extends PureComponent<unknown> {
                 <div className="posts" onScroll={() => {
                     this.requester?.request(1)
                 }}>
-                    {this.posts
-                        .map(postId => postRepository.get({postId}))
-                        .map((promise) => {
-                            promise.then(value => {
-                                return (<div id={`post_${value.id}`} onMouseUp={event => {
-                                    WS.process(EditPost, {
-                                        postId: value.id,
-                                        imageUrl: value.title,
-                                        tags: value.tags,
-                                        title: value.description,
-                                        description: value.imageUrl
-                                    })
-                                }}>
-                                    <img alt={value.imageUrl}></img>
-                                    <h1>{value.title}({value.tags.join(", ")})</h1>
-                                    <p>{value.description}</p>
-                                </div>)
+                    {Array.from(this.posts.values())
+                        .map(post => (<div id={`post_${post.id}`} onMouseUp={() => {
+                            WS.process(EditPost, {
+                                postId: post.id,
+                                imageUrl: post.title,
+                                tags: post.tags,
+                                title: post.description,
+                                description: post.imageUrl
                             })
-                        })}
+                        }}>
+                            <img alt={post.imageUrl}></img>
+                            <h1>{post.title}({post.tags?.join(", ")})</h1>
+                            <p>{post.description}</p>
+                        </div>))}
                 </div>
             </div>
         );
