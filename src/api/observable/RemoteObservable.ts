@@ -2,7 +2,7 @@ import {observable} from "mobx";
 
 export default class RemoteObservable<F, T> {
     private readonly fetch: (filter: F, update: (data: T) => void) => void
-    @observable private observables: Map<F, Promise<T>> = new Map<F, Promise<T>>()
+    private observables: Map<F, Promise<T>> = observable.map(new Map<F, Promise<T>>())
 
     constructor(fetch: (filter: F, update: (data: T) => void) => void) {
         this.fetch = fetch
@@ -11,8 +11,10 @@ export default class RemoteObservable<F, T> {
     private _fetch(filter: F) {
         const promise = new Promise<T>(resolve => {
             this.fetch(filter, data => {
-                this.observables.set(filter, Promise.resolve(data))
-                resolve(data)
+                console.log(data)
+                const result = Promise.resolve(data);
+                this.observables.set(filter, result)
+                resolve(result)
             })
         })
         this.observables.set(filter, promise)

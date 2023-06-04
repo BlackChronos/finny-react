@@ -8,6 +8,7 @@ import {observer} from "mobx-react";
 import credentialsRepository from "./module/account/repository/CredentialsRepository.ts";
 import SignIn from "./components/signin/SignIn.tsx";
 import ChangePassword from "./components/changepassword/ChangePassword.tsx";
+import CreatePost from "./components/post/create/CreatePost.tsx";
 
 @observer
 export default class App extends PureComponent {
@@ -17,7 +18,7 @@ export default class App extends PureComponent {
                 <Header/>
                 <Routes>
                     <Route path="/*" element={<PostSearch/>}/>
-                    <Route path="/new-post" element={<Post/>}/>
+                    <Route path="/new-post" element={<CreatePost/>}/>
                     <Route path="/post/:id" element={<Post/>}/>
                     <Route path="/signIn" element={
                         credentialsRepository.getToken() ? <Navigate to="/" replace/> : <SignIn/>

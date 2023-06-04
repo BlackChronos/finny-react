@@ -4,7 +4,7 @@ import {WS} from "../../../api";
 import SubscribePost from "../controller/SubscribePost.ts";
 
 export const postRepository = new RemoteObservable<{
-    id: string
+    postId: string
 }, Post>((filter, update) => {
     const fetch = () => {
         WS.process(SubscribePost, filter, data => {
